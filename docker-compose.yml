@@ -1,0 +1,57 @@
+version: '3.1'
+
+services:
+
+  php-fpm:
+    build: docker/php-fpm
+    container_name: to-do-list-php-fpm
+    working_dir: /var/www/html
+    volumes:
+      - ./application:/var/www/html
+      - ./docker/php-fpm/php-ini-overrides.ini:/etc/php/7.2/fpm/conf.d/99-overrides.ini
+    networks:
+      - internal
+
+  webserver:
+    image: nginx:alpine
+    container_name: to-do-list-webserver
+    working_dir: /var/www/html
+    links:
+      - php-fpm
+      - mysql
+    volumes:
+      - ./application:/var/www/html
+      - ./docker/nginx/nginx.conf:/etc/nginx/conf.d/default.conf
+    ports:
+      - "8081:80"
+    networks:
+      - internal
+
+  mysql:
+    image: mysql:8.0
+    container_name: to-do-list-mysql
+    environment:
+      - MYSQL_ROOT_HOST=%
+      - MYSQL_DATABASE=db
+      - MYSQL_ROOT_PASSWORD=kwV6jp%3rpjk{([u
+    volumes:
+      - ./docker/mysqldata:/var/lib/mysql
+      - ./docker/mysql-files:/var/lib/mysql-files
+    ports:
+      - "3306:3306"
+    networks:
+      - internal
+
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin
+    ports:
+      - "8082:80"
+    environment:
+      - PMA_HOST=mysql
+      - PMA_PORT=3306
+      - MYSQL_ROOT_PASSWORD=kwV6jp%3rpjk{([u
+    networks:
+      - internal
+
+networks:
+  internal:
